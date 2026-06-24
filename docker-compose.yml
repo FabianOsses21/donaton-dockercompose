@@ -74,5 +74,27 @@ services:
       - donaciones-service
       - logistica-service
 
+  donaton-bff:
+    build:
+      context: ../donaton-bff
+    container_name: donaton-bff
+    restart: always
+    ports:
+      - "8085:8085"
+    environment:
+      SERVICES_DONACIONES_URL: http://donaciones-service:8082/api/v1/donaciones
+      SERVICES_NECESIDADES_URL: http://necesidades-service:8083/api/v1/necesidades
+      SERVICES_LOGISTICA_URL: http://logistica-service:8084/api/v1/logistica
+    depends_on:
+      - api-gateway
+
+  donaton-frontend:
+    build:
+      context: ../donaton-front
+    container_name: donaton-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+
 volumes:
   mysql_data:
