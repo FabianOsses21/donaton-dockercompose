@@ -2,6 +2,14 @@ version: '3.9'
 
 services:
 
+  eureka-server:
+    build:
+      context: ../donaton-eureka/proyecto
+    container_name: eureka-server
+    restart: always
+    ports:
+      - "8761:8761"
+
   mysql:
     image: mysql:8.0
     container_name: donaton-mysql
@@ -9,7 +17,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -24,8 +32,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/donaton_necesidades?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       - mysql
+      - eureka-server
 
   donaciones-service:
     build:
@@ -38,8 +48,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/donaton_donaciones?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       - mysql
+      - eureka-server
 
   logistica-service:
     build:
@@ -52,9 +64,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/donaton_logistica?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
-      DONACIONES_SERVICE_URL: http://donaciones-service:8082/api/v1/donaciones
-      NECESIDADES_SERVICE_URL: http://necesidades-service:8083/api/v1/necesidades
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
+      - eureka-server
       - donaciones-service
       - necesidades-service
 
@@ -69,7 +81,9 @@ services:
       SERVICES_NECESIDADES_URL: http://necesidades-service:8083
       SERVICES_DONACIONES_URL: http://donaciones-service:8082
       SERVICES_LOGISTICA_URL: http://logistica-service:8084
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
+      - eureka-server
       - necesidades-service
       - donaciones-service
       - logistica-service
@@ -82,10 +96,9 @@ services:
     ports:
       - "8085:8085"
     environment:
-      SERVICES_DONACIONES_URL: http://donaciones-service:8082/api/v1/donaciones
-      SERVICES_NECESIDADES_URL: http://necesidades-service:8083/api/v1/necesidades
-      SERVICES_LOGISTICA_URL: http://logistica-service:8084/api/v1/logistica
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
+      - eureka-server
       - api-gateway
 
   donaton-frontend:
